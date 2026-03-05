@@ -5,6 +5,9 @@
 
 #define NHASH 9997
 
+extern int yylineno;
+extern char *curfilename;
+
 struct ref {
     char *filename;
     int lineno;
@@ -14,10 +17,10 @@ struct ref {
 struct symbol {
     char *name;
     struct ref *reflist;
-    struct symbol *next;   /* para la lista enlazada */
+    struct symbol *next;
 };
 
-struct symbol *symtab[NHASH];
+struct symbol *symtab[NHASH] = {0};   /* tabla inicializada en NULL */
 
 unsigned symhash(char *sym)
 {
@@ -52,7 +55,7 @@ struct symbol *lookup(char *sym)
     sp->name = strdup(sym);
     sp->reflist = NULL;
 
-    /* insertar al inicio de la lista */
+    /* insertar en la lista */
     sp->next = symtab[hash];
     symtab[hash] = sp;
 
@@ -65,6 +68,11 @@ void addref(char *word, char *filename, int lineno)
     struct symbol *sp = lookup(word);
 
     r = malloc(sizeof(struct ref));
+
+    if(!r) {
+        perror("malloc");
+        exit(1);
+    }
 
     r->filename = strdup(filename);
     r->lineno = lineno;
